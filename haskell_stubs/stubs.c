@@ -3,12 +3,137 @@
 #include "cudd.h"
 #include "dddmp.h"
 
+/*ZDD stuff */
+
+DdNode *Cudd_zddSubset1_s (DdManager *m, DdNode *n, int var){
+    DdNode *r = Cudd_zddSubset1(m, n, var);
+    assert(r);
+    Cudd_Ref(r);
+    return r;
+}
+DdNode *Cudd_zddSubset0_s (DdManager *m, DdNode *n, int var){
+    DdNode *r = Cudd_zddSubset0(m, n, var);
+    assert(r);
+    Cudd_Ref(r);
+    return r;
+}
+DdNode *Cudd_zddChange_s (DdManager *m, DdNode *n, int var){
+    DdNode *r = Cudd_zddChange(m, n, var);
+    assert(r);
+    Cudd_Ref(r);
+    return r;
+}
+DdNode *Cudd_zddProduct_s (DdManager *m, DdNode *x, DdNode *y){
+    DdNode *r = Cudd_zddUnateProduct(m, x, y);
+    assert(r);
+    Cudd_Ref(r);
+    return r;
+}
+DdNode *Cudd_zddUnion_s (DdManager *m, DdNode *x, DdNode *y){
+    DdNode *r = Cudd_zddUnion(m, x, y);
+    assert(r);
+    Cudd_Ref(r);
+    return r;
+}
+
+DdNode *Cudd_zddReadOne_withRef_s(DdManager *m){
+    DdNode *r = Cudd_ReadZddOne(m, (int) 0);
+    assert(r);
+    Cudd_Ref(r);
+    return r;
+}
+
+DdNode *Cudd_zddReadZero_s(DdManager *m){
+    DdNode *r = Cudd_ReadZero(m );
+    assert(r);
+    Cudd_Ref(r);
+    return r;
+}
+
+DdNode *Cudd_zddComplement_s(DdManager *m, DdNode *n){
+    DdNode *r = Cudd_zddComplement(m, n);
+    assert(r);
+    Cudd_Ref(r);
+    return r;
+}
+
+DdNode * Cudd_zddDiff_s(DdManager *m, DdNode *x, DdNode *y ){
+    DdNode *r = Cudd_zddDiff(m, x, y);
+    assert(r);
+    Cudd_Ref(r);
+    return r;
+}
+
+DdNode *Cudd_zddIte_withRef_s (DdManager *m, DdNode *x, DdNode *y, DdNode *z){
+    DdNode *r = Cudd_zddIte(m, x, y, z);
+    assert(r);
+    Cudd_Ref(r);
+    return r;
+}
+
+DdNode *Cudd_zddIntersect_s (DdManager *m, DdNode *x, DdNode *y){
+    DdNode *r = Cudd_zddIntersect(m, x, y);
+    assert(r);
+    Cudd_Ref(r);
+    return r;
+}
+
+DdNode *Cudd_zddIthVar_s(DdManager *m, int i){
+    DdNode *r = Cudd_zddIthVar(m, i);
+    assert(r);
+    Cudd_Ref(r);
+    return r;
+}
+
+void Cudd_zddVarsFromBddVars_s(DdManager *m, int i){
+    Cudd_zddVarsFromBddVars(m, i);
+}
+
+void Cudd_dumpDot(DdManager *m, DdNode *n, char* filename){
+    FILE *outfile; // output file pointer for .dot file
+    outfile = fopen(filename,"w");
+    DdNode **ddnodearray = (DdNode**)malloc(sizeof(DdNode*)); // initialize the function array
+    ddnodearray[0] = n;
+    Cudd_DumpDot(m, 1, ddnodearray, NULL, NULL, outfile); // dump the function to .dot file
+    free(ddnodearray);
+    fclose (outfile); // close the file */
+}
+
+void Cudd_dumpDotZ(DdManager *m, DdNode *n, char* filename){
+    FILE *outfile; // output file pointer for .dot file
+    outfile = fopen(filename,"w");
+    DdNode **ddnodearray = (DdNode**)malloc(sizeof(DdNode*)); // initialize the function array
+    ddnodearray[0] = n;
+    Cudd_zddDumpDot(m, 1, ddnodearray, NULL, NULL, outfile); // dump the function to .dot file
+    free(ddnodearray);
+    fclose (outfile); // close the file */
+}
+
+
+DdNode *Cudd_zddPortFromBdd_s(DdManager *m, DdNode *n){
+    DdNode *r = Cudd_zddPortFromBdd(m, n);
+    assert(r);
+    Cudd_Ref(r);
+    return r;
+}
+
+DdNode *Cudd_zddPortToBdd_s(DdManager *m, DdNode *n){
+    DdNode *r = Cudd_zddPortToBdd(m, n);
+    assert(r);
+    Cudd_Ref(r);
+    return r;
+}
+
+    
+/* non Zdd stuff*/
+
 DdNode *Cudd_bddVarMap_s(DdManager *m, DdNode *x){
     DdNode *r = Cudd_bddVarMap(m, x);
     assert(r);
     Cudd_Ref(r);
     return r;
 }
+
 
 DdNode *Cudd_ReadOne_s(DdManager *m){
     DdNode *r = Cudd_ReadOne(m);

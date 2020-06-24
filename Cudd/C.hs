@@ -1,8 +1,30 @@
 {-# LANGUAGE ForeignFunctionInterface, EmptyDataDecls, CPP #-}
-
+ 
 module Cudd.C (
     CDdManager,
     CDdNode,
+    c_cuddDisabledGarbageCollection,
+    c_cuddZddReadOneWithRef, --ZDD stuff
+    c_cuddZddIthVar,
+    c_cuddZddITE,
+    c_cuddZddIntersect,
+    c_cuddZddUnion,
+    c_cuddZddVarsFromBddVars,
+    c_cuddZddPortFromBdd,
+    c_cuddZddPortToBdd,
+    c_cuddPrintDdInfo,
+    c_cuddZddDiff,
+    c_cuddZddToDot,
+    c_cuddZddSub0,
+    c_cuddZddSub1,
+    c_cuddZddProduct,
+    c_cuddZddChange,
+    c_cuddZddReadZero,
+    c_cuddBddToDot,
+    c_cuddZddComplement,
+    c_cuddRecursiveDerefZddPtr,
+    c_cuddDeref,
+    c_cuddDebugCheck,   --other stuff
     c_cuddReadOne,
     c_cuddReadLogicZero,
     c_cuddReadOneWithRef,
@@ -21,7 +43,7 @@ module Cudd.C (
     c_cuddBddUnivAbstract,
     c_cuddIterDerefBdd,
     cuddRef,
-    c_cuddInit,
+    c_cuddInit, 
     c_cuddShuffleHeap,
     c_cuddSetVarMap,
     c_cuddBddVarMap,
@@ -36,13 +58,13 @@ module Cudd.C (
     c_cuddBddComputeCube,
     c_cuddBddToCubeArray,
     c_cuddReadSize,
+    c_cuddReadZddSize,
     c_cuddBddCompose,
     c_cuddBddAndAbstract,
     c_cuddBddXorExistAbstract,
     c_cuddBddLeqUnless,
     c_cuddEquivDC,
     c_cuddXeqy,
-    c_cuddDebugCheck,
     c_cuddCheckKeys,
     c_cuddBddPickOneMinterm,
     c_cuddCheckZeroRef,
@@ -89,11 +111,74 @@ module Cudd.C (
 
 import Foreign
 import Foreign.C.Types
+import Foreign.C.String
 
 import Cudd.MTR
 
 data CDdManager
 data CDdNode
+
+
+foreign import ccall safe "cudd.h Cudd_DisableGarbageCollection"
+    c_cuddDisabledGarbageCollection :: Ptr CDdManager -> IO ()
+
+--ZDD stuff
+
+foreign import ccall safe "cudd.h Cudd_zddReadOne_withRef_s"
+    c_cuddZddReadOneWithRef :: Ptr CDdManager -> IO (Ptr CDdNode)
+
+foreign import ccall safe "cudd.h Cudd_zddIthVar_s"
+    c_cuddZddIthVar :: Ptr CDdManager -> CInt -> IO (Ptr CDdNode)
+
+foreign import ccall safe "cudd.h Cudd_zddVarsFromBddVars_s"
+    c_cuddZddVarsFromBddVars :: Ptr CDdManager -> CInt -> IO()
+
+foreign import ccall "Cudd_PrintDebug"
+    c_cuddPrintDdInfo :: Ptr CDdManager -> Ptr CDdNode -> CInt -> CInt -> IO ()
+
+foreign import ccall safe "cudd.h Cudd_zddPortFromBdd_s"
+    c_cuddZddPortFromBdd :: Ptr CDdManager -> Ptr CDdNode -> IO (Ptr CDdNode)
+
+foreign import ccall safe "cudd.h Cudd_zddPortToBdd_s"
+    c_cuddZddPortToBdd :: Ptr CDdManager -> Ptr CDdNode -> IO (Ptr CDdNode)
+
+foreign import ccall safe "cudd.h Cudd_zddIte_withRef_s"
+    c_cuddZddITE :: Ptr CDdManager -> Ptr CDdNode -> Ptr CDdNode -> Ptr CDdNode -> IO (Ptr CDdNode)
+
+foreign import ccall safe "cudd.h Cudd_zddIntersect_s"
+    c_cuddZddIntersect :: Ptr CDdManager -> Ptr CDdNode -> Ptr CDdNode -> IO (Ptr CDdNode)
+
+foreign import ccall safe "cudd.h Cudd_zddDiff_s"
+    c_cuddZddDiff :: Ptr CDdManager -> Ptr CDdNode -> Ptr CDdNode -> IO (Ptr CDdNode)
+
+foreign import ccall safe "cudd.h Cudd_dumpDotZ"
+    c_cuddZddToDot :: Ptr CDdManager -> Ptr CDdNode -> CString -> IO ()
+
+foreign import ccall safe "cudd.h Cudd_dumpDot"
+    c_cuddBddToDot :: Ptr CDdManager -> Ptr CDdNode -> CString -> IO ()
+
+foreign import ccall safe "cudd.h Cudd_zddSubset0_s"
+    c_cuddZddSub0 :: Ptr CDdManager -> Ptr CDdNode -> CInt -> IO (Ptr CDdNode)
+
+foreign import ccall safe "cudd.h Cudd_zddSubset1_s"
+    c_cuddZddSub1 :: Ptr CDdManager -> Ptr CDdNode -> CInt -> IO (Ptr CDdNode)
+
+foreign import ccall safe "cudd.h Cudd_zddChange_s"
+    c_cuddZddChange :: Ptr CDdManager -> Ptr CDdNode -> CInt -> IO (Ptr CDdNode)
+
+foreign import ccall safe "cudd.h Cudd_zddUnion_s"
+    c_cuddZddUnion :: Ptr CDdManager -> Ptr CDdNode -> Ptr CDdNode -> IO (Ptr CDdNode)
+
+foreign import ccall safe "cudd.h Cudd_zddProduct_s"
+    c_cuddZddProduct :: Ptr CDdManager -> Ptr CDdNode -> Ptr CDdNode -> IO (Ptr CDdNode)
+
+foreign import ccall safe "cudd.h Cudd_zddReadZero_s"
+    c_cuddZddReadZero :: Ptr CDdManager -> IO (Ptr CDdNode)
+
+foreign import ccall safe "cudd.h Cudd_zddComplement_s"
+    c_cuddZddComplement :: Ptr CDdManager -> IO (Ptr CDdNode)
+
+-- Non zdd stuff
 
 foreign import ccall safe "cudd.h Cudd_ReadOne_s"
     c_cuddReadOne :: Ptr CDdManager -> IO (Ptr CDdNode)
@@ -146,6 +231,9 @@ foreign import ccall safe "cudd.h Cudd_bddUnivAbstract_s"
 foreign import ccall safe "cudd.h Cudd_IterDerefBdd"
     c_cuddIterDerefBdd :: Ptr CDdManager -> Ptr CDdNode -> IO ()
 
+foreign import ccall safe "cudd.h Cudd_Deref"
+    c_cuddDeref :: Ptr CDdNode -> IO ()
+
 foreign import ccall safe "cuddwrap.h wrappedCuddRef"
     cuddRef :: Ptr CDdNode -> IO ()
 
@@ -193,6 +281,9 @@ foreign import ccall safe "cudd.h Cudd_BddToCubeArray"
 
 foreign import ccall safe "cudd.h Cudd_ReadSize"
     c_cuddReadSize :: Ptr CDdManager -> IO CInt
+
+foreign import ccall safe "cudd.h Cudd_ReadZddSize"
+    c_cuddReadZddSize :: Ptr CDdManager -> IO CInt
 
 foreign import ccall safe "cudd.h Cudd_bddCompose_s"
     c_cuddBddCompose :: Ptr CDdManager -> Ptr CDdNode -> Ptr CDdNode -> CInt -> IO (Ptr CDdNode)
@@ -325,6 +416,10 @@ foreign import ccall safe "cudd.h &Cudd_DelayedDerefBdd"
 
 foreign import ccall safe "cudd.h &Cudd_IterDerefBdd"
     c_cuddIterDerefBddPtr :: FunPtr (Ptr CDdManager -> Ptr CDdNode -> IO ())
+
+foreign import ccall safe "cudd.h &Cudd_RecursiveDerefZdd"
+    c_cuddRecursiveDerefZddPtr :: FunPtr (Ptr CDdManager -> Ptr CDdNode -> IO ())
+
 
 foreign import ccall safe "cudd.h Cudd_bddNewVar_s"
     c_cuddBddNewVar :: Ptr CDdManager -> IO (Ptr CDdNode)
