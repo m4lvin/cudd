@@ -116,8 +116,8 @@ import Cudd.MTR
 import Cudd.C
 import Cudd.Common
 
-cuddInit :: DdManager
-cuddInit = DdManager $ unsafePerformIO $ c_cuddInit 0 0 (fromIntegral cudd_unique_slots) (fromIntegral cudd_cache_slots) 0
+cuddInit :: IO DdManager
+cuddInit = DdManager <$> c_cuddInit 0 0 (fromIntegral cudd_unique_slots) (fromIntegral cudd_cache_slots) 0
 
 cuddDeref :: DdManager -> DdNode -> IO()
 cuddDeref (DdManager d) (DdNode n) = withForeignPtr n $ \np -> do 

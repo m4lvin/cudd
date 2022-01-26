@@ -24,7 +24,7 @@ cudd_unique_slots = #const CUDD_UNIQUE_SLOTS
 cudd_cache_slots :: Int
 cudd_cache_slots = #const CUDD_CACHE_SLOTS
 
-newtype DdManager = DdManager (Ptr CDdManager)
+newtype DdManager = DdManager (Ptr CDdManager) deriving (Eq, Ord, Show)
 
 newtype STDdManager s u = STDdManager {unSTDdManager :: Ptr CDdManager}
 
