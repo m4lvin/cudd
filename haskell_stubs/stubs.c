@@ -3,8 +3,6 @@
 #include "cudd.h"
 #include "dddmp.h"
 
-/*ZDD stuff */
-
 DdNode *Cudd_zddSubset1_s (DdManager *m, DdNode *n, int var){
     DdNode *r = Cudd_zddSubset1(m, n, var);
     assert(r);
@@ -109,7 +107,6 @@ void Cudd_dumpDotZ(DdManager *m, DdNode *n, char* filename){
     fclose (outfile); // close the file */
 }
 
-
 DdNode *Cudd_zddPortFromBdd_s(DdManager *m, DdNode *n){
     DdNode *r = Cudd_zddPortFromBdd(m, n);
     assert(r);
@@ -124,16 +121,12 @@ DdNode *Cudd_zddPortToBdd_s(DdManager *m, DdNode *n){
     return r;
 }
 
-    
-/* non Zdd stuff*/
-
 DdNode *Cudd_bddVarMap_s(DdManager *m, DdNode *x){
     DdNode *r = Cudd_bddVarMap(m, x);
     assert(r);
     Cudd_Ref(r);
     return r;
 }
-
 
 DdNode *Cudd_ReadOne_s(DdManager *m){
     DdNode *r = Cudd_ReadOne(m);
@@ -416,4 +409,3 @@ DdNode *Cudd_bddVectorCompose_s(DdManager *m, DdNode *x, DdNode **xs){
     Cudd_Ref(r);
     return r;
 }
-

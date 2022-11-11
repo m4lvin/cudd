@@ -4,12 +4,12 @@ module Cudd.Cudd (
     DdManager(),
     DdNode(),
     cuddInit,
-    cuddInitOrder, 
+    cuddInitOrder,
     cuddDisabledGarbageCollection,
     cuddReadOne,
     cuddReadLogicZero,
     cuddBddIthVar,
-    cuddZddIthVar, --ZDD stuff
+    cuddZddIthVar,
     cuddZddITE,
     cuddZddVarsFromBddVars,
     cuddZddPortFromBdd,
@@ -28,8 +28,8 @@ module Cudd.Cudd (
     cuddZddReadZero,
     cuddZddVarFromBdd,
     cuddZddComplement,
-    cuddDeref,
-    cuddBddToDot, --other stuff
+    cuddDumpDot,
+    cuddBddToDot,
     cuddBddAnd,
     cuddBddOr,
     cuddBddNand,
@@ -119,11 +119,6 @@ import Cudd.Common
 cuddInit :: IO DdManager
 cuddInit = DdManager <$> c_cuddInit 0 0 (fromIntegral cudd_unique_slots) (fromIntegral cudd_cache_slots) 0
 
-cuddDeref :: DdManager -> DdNode -> IO()
-cuddDeref (DdManager d) (DdNode n) = withForeignPtr n $ \np -> do 
-     newForeignPtrEnv derefZ d np
-     return ()
-
 cuddInitOrder :: [Int] -> DdManager
 cuddInitOrder order = DdManager $ unsafePerformIO $ withArrayLen (map fromIntegral order) $ \size ptr -> do
     when (sort order /= [0..size-1]) (error "cuddInitOrder: order does not contain each variable once")
@@ -164,9 +159,9 @@ cuddZddReadOne (DdManager d) = DdNode $ unsafePerformIO $ do
     node <- c_cuddZddReadOneWithRef d
     newForeignPtrEnv derefZ d node
 
-cuddZddReadOneIO :: DdManager -> IO(DdNode)
-cuddZddReadOneIO (DdManager d) = do 
-    return $ DdNode $ unsafePerformIO $ do
+cuddZddReadOneIO :: DdManager -> IO DdNode
+cuddZddReadOneIO (DdManager d) =
+    DdNode <$> do
         node <- c_cuddZddReadOneWithRef d
         newForeignPtrEnv derefZ d node
 
@@ -175,9 +170,9 @@ cuddZddReadZero (DdManager d) = DdNode $ unsafePerformIO $ do
     node <- c_cuddZddReadZero d
     newForeignPtrEnv derefZ d node
 
-cuddZddVarFromBdd :: DdManager -> IO()
+cuddZddVarFromBdd :: DdManager -> IO ()
 cuddZddVarFromBdd (DdManager d) = do
-    c_cuddZddVarsFromBddVars d (fromIntegral 1)
+    c_cuddZddVarsFromBddVars d (fromInteger 1)
     return ()
 
 cuddZddPortFromBdd :: DdManager -> DdNode -> DdNode
@@ -190,14 +185,14 @@ cuddZddPortToBdd (DdManager d) (DdNode n) = DdNode $ unsafePerformIO $ withForei
     node <- c_cuddZddPortToBdd d np
     newForeignPtrEnv deref d node
 
-cuddZddVarsFromBddVars :: DdManager -> Int -> IO()
+cuddZddVarsFromBddVars :: DdManager -> Int -> IO ()
 cuddZddVarsFromBddVars (DdManager d) i = do
     c_cuddZddVarsFromBddVars d (fromIntegral i)
 
-cuddPrintDdInfo :: DdManager -> DdNode -> IO()
-cuddPrintDdInfo (DdManager d) (DdNode n) = 
-    withForeignPtr n $ \np -> do 
-    c_cuddPrintDdInfo d np 0 3 
+cuddPrintDdInfo :: DdManager -> DdNode -> IO ()
+cuddPrintDdInfo (DdManager d) (DdNode n) =
+    withForeignPtr n $ \np -> do
+    c_cuddPrintDdInfo d np 0 3
 
 cuddZddITE :: DdManager -> DdNode -> DdNode -> DdNode -> DdNode
 cuddZddITE = cuddArg3Z c_cuddZddITE
@@ -219,44 +214,38 @@ cuddZddComplement (DdManager d) (DdNode n) = DdNode $ unsafePerformIO $ withFore
     node <- c_cuddZddPortFromBdd d np
     newForeignPtrEnv derefZ d node
 
-cuddZddToDot :: DdManager -> DdNode -> String -> IO()
-cuddZddToDot (DdManager m) (DdNode n) file = 
-    withForeignPtr n $ \np -> 
+cuddZddToDot :: DdManager -> DdNode -> String -> IO ()
+cuddZddToDot (DdManager m) (DdNode n) file =
+    withForeignPtr n $ \np ->
         c_cuddZddToDot m np f where
             f = unsafePerformIO $ newCString file
 
 cuddZddSub0 :: DdManager -> DdNode -> Int -> DdNode
 cuddZddSub0 (DdManager m) (DdNode n) i =
-    DdNode $ unsafePerformIO $ withForeignPtr n $ \np -> do 
+    DdNode $ unsafePerformIO $ withForeignPtr n $ \np -> do
         node <- c_cuddZddSub0 m np (fromIntegral i)
         newForeignPtrEnv derefZ m node
 
 cuddZddSub1 :: DdManager -> DdNode -> Int -> DdNode
 cuddZddSub1 (DdManager m) (DdNode n) i =
-    DdNode $ unsafePerformIO $ withForeignPtr n $ \np -> do 
+    DdNode $ unsafePerformIO $ withForeignPtr n $ \np -> do
         node <- c_cuddZddSub1 m np (fromIntegral i)
         newForeignPtrEnv derefZ m node
 
 cuddZddChange :: DdManager -> DdNode -> Int -> DdNode
 cuddZddChange (DdManager m) (DdNode n) i =
-    DdNode $ unsafePerformIO $ withForeignPtr n $ \np -> do 
+    DdNode $ unsafePerformIO $ withForeignPtr n $ \np -> do
         node <- c_cuddZddChange m np (fromIntegral i)
         newForeignPtrEnv derefZ m node
 
---bool = 0, returns a zdd where the variable is false
-{-cuddZddRestrict :: DdManager -> DdNode -> Int -> Bool -> IO(DdNode) 
-cuddZddRestrict m n i b = 
-    if b then cuddZddSub1 m n i else cuddZddSub0 m n i-}
+cuddBddToDot :: DdManager -> DdNode -> String -> IO ()
+cuddBddToDot (DdManager m) (DdNode n) file =
+    withForeignPtr n $ \np -> do
+        f <- newCString file
+        c_cuddBddToDot m np f
 
-cuddBddToDot :: DdManager -> DdNode -> String -> IO()
-cuddBddToDot (DdManager m) (DdNode n) file = 
-    withForeignPtr n $ \np -> do 
-        c_cuddBddToDot m np f where
-            f = unsafePerformIO $ newCString file
-
-cuddDisabledGarbageCollection :: DdManager -> IO()
+cuddDisabledGarbageCollection :: DdManager -> IO ()
 cuddDisabledGarbageCollection (DdManager m) = c_cuddDisabledGarbageCollection m
---other stuff
 
 cuddArg1 :: (Ptr CDdManager -> Ptr CDdNode -> IO (Ptr CDdNode)) -> DdManager -> DdNode -> DdNode
 cuddArg1 f (DdManager m) (DdNode x) = DdNode $ unsafePerformIO $
@@ -278,12 +267,6 @@ cuddArg3 f (DdManager m) (DdNode l) (DdNode r) (DdNode x) = DdNode $ unsafePerfo
     withForeignPtr x $ \xp -> do
     node <- f m lp rp xp
     newForeignPtrEnv deref m node
-
-cuddArg1Z :: (Ptr CDdManager -> Ptr CDdNode -> IO (Ptr CDdNode)) -> DdManager -> DdNode -> DdNode
-cuddArg1Z f (DdManager m) (DdNode x) = DdNode $ unsafePerformIO $
-    withForeignPtr x $ \xp -> do
-    node <- f m xp
-    newForeignPtrEnv derefZ m node
 
 cuddArg2Z :: (Ptr CDdManager -> Ptr CDdNode -> Ptr CDdNode -> IO (Ptr CDdNode)) -> DdManager -> DdNode -> DdNode -> DdNode
 cuddArg2Z f (DdManager m) (DdNode l) (DdNode r) = DdNode $ unsafePerformIO $
@@ -494,7 +477,6 @@ cuddBddLICompaction = cuddArg2 c_cuddBddLICompaction
 cuddBddMinimize :: DdManager -> DdNode -> DdNode -> DdNode
 cuddBddMinimize = cuddArg2 c_cuddBddMinimize
 
---Bdd implication
 cuddBddImp :: DdManager -> DdNode -> DdNode -> DdNode
 cuddBddImp m l = cuddBddOr m (cuddNot m l)
 

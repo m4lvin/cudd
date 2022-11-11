@@ -12,4 +12,3 @@ expand :: SatBit -> [Bool]
 expand Zero     = [False]
 expand One      = [True]
 expand DontCare = [False, True]
-

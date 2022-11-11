@@ -37,5 +37,3 @@ deref = c_cuddIterDerefBddPtr
 
 derefZ :: FunPtr (Ptr CDdManager -> Ptr CDdNode -> IO ())
 derefZ = c_cuddRecursiveDerefZddPtr
-
-
