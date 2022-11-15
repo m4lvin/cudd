@@ -5,6 +5,7 @@ module Cudd.Internal (
     DdNode(..),
     DDNode(..),
     deref,
+    derefZ,
     cudd_unique_slots,
     cudd_cache_slots
     ) where
@@ -23,7 +24,7 @@ cudd_unique_slots = #const CUDD_UNIQUE_SLOTS
 cudd_cache_slots :: Int
 cudd_cache_slots = #const CUDD_CACHE_SLOTS
 
-newtype DdManager = DdManager (Ptr CDdManager)
+newtype DdManager = DdManager (Ptr CDdManager) deriving (Eq, Ord, Show)
 
 newtype STDdManager s u = STDdManager {unSTDdManager :: Ptr CDdManager}
 
@@ -33,3 +34,6 @@ newtype DDNode s u = DDNode {unDDNode :: Ptr CDdNode} deriving (Ord, Eq, Show)
 
 deref :: FunPtr (Ptr CDdManager -> Ptr CDdNode -> IO ())
 deref = c_cuddIterDerefBddPtr
+
+derefZ :: FunPtr (Ptr CDdManager -> Ptr CDdNode -> IO ())
+derefZ = c_cuddRecursiveDerefZddPtr
