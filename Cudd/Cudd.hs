@@ -4,6 +4,7 @@ module Cudd.Cudd (
     DdManager(),
     DdNode(),
     cuddInit,
+    cuddInitZ,
     cuddInitOrder,
     cuddDisabledGarbageCollection,
     cuddReadOne,
@@ -118,6 +119,9 @@ import Cudd.Common
 
 cuddInit :: IO DdManager
 cuddInit = DdManager <$> c_cuddInit 0 0 (fromIntegral cudd_unique_slots) (fromIntegral cudd_cache_slots) 0
+
+cuddInitZ :: Int -> IO DdManager
+cuddInitZ n = DdManager <$> c_cuddInit 0 (fromIntegral n) (fromIntegral cudd_unique_slots) (fromIntegral cudd_cache_slots) 0
 
 cuddInitOrder :: [Int] -> DdManager
 cuddInitOrder order = DdManager $ unsafePerformIO $ withArrayLen (map fromIntegral order) $ \size ptr -> do
