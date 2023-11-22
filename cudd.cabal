@@ -10,6 +10,16 @@ copyright:           2014 Adam Walker
 category:            Data
 build-type:          Simple
 cabal-version:       >=1.10
+extra-source-files:
+  cudd/cudd.h
+  cudd/cuddInt.h
+  dddmp/dddmp.h
+  dddmp/dddmpInt.h
+  epd/epd.h
+  mtr/mtr.h
+  mtr/mtrInt.h
+  st/st.h
+  util/util.h
 
 library
   exposed-modules:     Cudd.File, Cudd.Convert, Cudd.Reorder, Cudd.MTR,
