@@ -29,9 +29,9 @@ library
   other-extensions:    ForeignFunctionInterface, CPP, FlexibleContexts,
                        RankNTypes, EmptyDataDecls
   build-depends:       base >=4.8 && <5,
-                       mtl >=2.1 && <2.3,
+                       mtl >=2.1 && <2.4,
                        array >=0.4 && <0.6,
-                       transformers >=0.3 && <0.6
+                       transformers >=0.3 && <0.7
   build-tools:         c2hs, hsc2hs
   default-language:    Haskell2010
   include-dirs:        . cudd dddmp epd mtr st util
