@@ -354,8 +354,11 @@ vectorCompose (STDdManager m) (DDNode f) nodes = fmap DDNode $ unsafeIOToST $ wi
     when (fromIntegral sz /= len) (error "vectorCompose: not one entry for each variable in manager")
     c_cuddBddVectorCompose m f ptr
 
+-- | Free the manager. If nodes converted to garbage collected 'DdNode's
+-- (see "Cudd.Convert") are still alive, the actual Cudd_Quit is delayed until
+-- their finalizers have run.
 quit :: STDdManager s u -> ST s ()
-quit (STDdManager m) = unsafeIOToST $ c_cuddQuit m
+quit (STDdManager m) = unsafeIOToST $ cuddQuit (DdManager m)
 
 readIndex :: DDNode s u -> ST s Int
 readIndex (DDNode x) = fmap fromIntegral $ unsafeIOToST $ c_cuddNodeReadIndex x

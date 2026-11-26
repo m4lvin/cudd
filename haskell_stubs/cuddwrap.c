@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <assert.h>
+#include <stdlib.h>
 
 #include "util.h"
 #include "cudd.h"
@@ -114,3 +115,86 @@ int *onePrime(DdManager *m, DdNode *l, DdNode *u, int *nvars){
     return result;
 }
 
+
+/* ------------------------------------------------------------------------
+ * Manager lifetime management for the Haskell bindings.
+ *
+ * Every DdNode handed to Haskell with a finalizer holds one reference that
+ * is released by hsCuddDerefBdd / hsCuddDerefZdd when the ForeignPtr dies.
+ * GHC gives no ordering guarantee between finalizers, so a manager must not
+ * be freed while such finalizers are still pending.  We therefore count the
+ * live finalizer-owned nodes per manager.  hsCuddQuit only marks the manager;
+ * Cudd_Quit is called as soon as that count drops to zero.
+ *
+ * All functions here are imported "unsafe" and finalizers run during GC, so
+ * they never run concurrently with each other (GHC's GC is stop-the-world).
+ * ---------------------------------------------------------------------- */
+
+typedef struct hsMgrEntry {
+    DdManager *m;
+    long live;          /* number of live finalizer-owned nodes */
+    int quitRequested;
+    struct hsMgrEntry *next;
+} hsMgrEntry;
+
+static hsMgrEntry *hsMgrList = NULL;
+
+static hsMgrEntry **hsMgrFind(DdManager *m){
+    hsMgrEntry **p = &hsMgrList;
+    while (*p && (*p)->m != m) p = &(*p)->next;
+    return p;
+}
+
+static hsMgrEntry *hsMgrGet(DdManager *m){
+    hsMgrEntry **p = hsMgrFind(m);
+    if (!*p) {
+        hsMgrEntry *e = malloc(sizeof(hsMgrEntry));
+        assert(e);
+        e->m = m; e->live = 0; e->quitRequested = 0; e->next = NULL;
+        *p = e;
+    }
+    return *p;
+}
+
+static void hsMgrMaybeQuit(DdManager *m){
+    hsMgrEntry **p = hsMgrFind(m);
+    hsMgrEntry *e = *p;
+    if (e && e->quitRequested && e->live == 0) {
+        *p = e->next;
+        free(e);
+        Cudd_Quit(m);
+    }
+}
+
+void hsCuddIncLive(DdManager *m){
+    hsMgrGet(m)->live++;
+}
+
+static void hsMgrDecLive(DdManager *m){
+    hsMgrEntry *e = *hsMgrFind(m);
+    assert(e && e->live > 0);
+    e->live--;
+    hsMgrMaybeQuit(m);
+}
+
+void hsCuddDerefBdd(DdManager *m, DdNode *n){
+    Cudd_IterDerefBdd(m, n);
+    hsMgrDecLive(m);
+}
+
+void hsCuddDerefZdd(DdManager *m, DdNode *n){
+    Cudd_RecursiveDerefZdd(m, n);
+    hsMgrDecLive(m);
+}
+
+/* Request that the manager be freed once all Haskell-owned nodes are gone. */
+void hsCuddQuit(DdManager *m){
+    hsMgrGet(m)->quitRequested = 1;
+    hsMgrMaybeQuit(m);
+}
+
+/* Number of live finalizer-owned nodes, or -1 if the manager is unknown/freed. */
+long hsCuddLiveNodes(DdManager *m){
+    hsMgrEntry *e = *hsMgrFind(m);
+    return e ? e->live : -1;
+}

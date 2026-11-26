@@ -60,5 +60,5 @@ cuddBddLoad (DdManager m) matchtype auxids composeids mode fname =
         case node == nullPtr of
             True  -> return Nothing
             False -> do
-                fp <- newForeignPtrEnv deref m node
+                fp <- newNodeFP deref m node
                 return $ Just $ DdNode fp

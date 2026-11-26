@@ -1,7 +1,6 @@
 module Cudd.Convert where
 
 import System.IO.Unsafe
-import Foreign.ForeignPtr
 import Foreign.ForeignPtr.Unsafe
 import Control.Monad.ST
 import Control.Monad.ST.Unsafe
@@ -12,7 +11,7 @@ import Cudd.C
 toDdNode :: DdManager -> DDNode s u -> DdNode
 toDdNode (DdManager m) (DDNode d) = DdNode $ unsafePerformIO $ do 
     cuddRef d
-    newForeignPtrEnv deref m d
+    newNodeFP deref m d
 
 toDdManager :: STDdManager s u -> DdManager
 toDdManager = DdManager . unSTDdManager
